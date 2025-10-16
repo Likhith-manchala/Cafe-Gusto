@@ -1,0 +1,63 @@
+/* General Styles */
+body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #050404;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+}
+
+/* Landing Page Logo */
+.logo {
+    width: 200px;
+    height: auto;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.1);
+}
+
+/* Welcome Text */
+.cafe-name {
+    font-size: 32px;
+    color: #ffffff;
+    margin-top: 20px;
+}
+
+/* Cuisine Selection */
+.cuisine-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.cuisine-btn {
+    background-color: #000000;
+    color: white;
+    border: none;
+    padding: 15px 60px;
+    margin: 10px;
+    font-size: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 300px;
+    transition: background-color 0.3s ease;
+}
+
+.cuisine-btn:hover {
+    background-color: #222222;
+}
+
+/* Hide Elements Initially */
+.hidden {
+    display: none;
+}
