@@ -13,9 +13,17 @@ if (!$data) {
 $customer_name = $data['customer_name'] ?? '';
 $table_number = $data['table_number'] ?? '';
 $items = $data['items'] ?? [];
+$payment_method = $data['payment_method'] ?? '';
+$payment_reference = trim($data['payment_reference'] ?? '');
+$total_amount = (float)($data['total_amount'] ?? 0);
 
-if (empty($customer_name) || empty($table_number) || empty($items)) {
+if (empty($customer_name) || empty($table_number) || empty($items) || !in_array($payment_method, ['upi', 'card', 'cash'], true)) {
     echo json_encode(['success' => false, 'message' => 'Missing required fields']);
+    exit;
+}
+
+if ($payment_method !== 'cash' && $payment_reference === '') {
+    echo json_encode(['success' => false, 'message' => 'Payment reference is required']);
     exit;
 }
 
@@ -57,6 +65,19 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     $conn->query($create_table_numbers_sql);
+
+    $create_payments_sql = "CREATE TABLE IF NOT EXISTS payments (
+        payment_id INT AUTO_INCREMENT PRIMARY KEY,
+        customer_name VARCHAR(100) NOT NULL,
+        table_number INT NOT NULL,
+        amount DECIMAL(10, 2) NOT NULL,
+        payment_method VARCHAR(20) NOT NULL,
+        payment_reference VARCHAR(100),
+        payment_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+        transaction_reference VARCHAR(40) NOT NULL UNIQUE,
+        paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )";
+    $conn->query($create_payments_sql);
 
     // Check if customer exists
     $stmt = $conn->prepare("SELECT customer_id FROM customer_logins WHERE username = ?");
@@ -116,10 +137,18 @@ try {
     $update_table_stmt->execute();
     $update_table_stmt->close();
 
+    // Store only the payment reference, never full card or account details.
+    $payment_status = $payment_method === 'cash' ? 'pending' : 'paid';
+    $transaction_reference = 'GUSTO-' . strtoupper(bin2hex(random_bytes(6)));
+    $payment_stmt = $conn->prepare("INSERT INTO payments (customer_name, table_number, amount, payment_method, payment_reference, payment_status, transaction_reference) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $payment_stmt->bind_param("sidssss", $customer_name, $table_number, $total_amount, $payment_method, $payment_reference, $payment_status, $transaction_reference);
+    $payment_stmt->execute();
+    $payment_stmt->close();
+
     // Commit transaction
     $conn->commit();
 
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'transaction_reference' => $transaction_reference, 'payment_status' => $payment_status]);
 } catch (Exception $e) {
     $conn->rollback();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);

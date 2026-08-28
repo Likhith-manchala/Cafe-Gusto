@@ -27,6 +27,17 @@ This project is a responsive and interactive hotel menu system developed using *
 
 ## 📁 Folder Structure
 
+## Vercel Deployment
+
+The Vercel version uses `index.html`, `menu.html`, `cart.html`, and the serverless endpoint at `/api/order`.
+
+1. Import this repository into Vercel.
+2. Create a Vercel Postgres/Neon integration from the project dashboard.
+3. Confirm the `POSTGRES_URL` environment variable is available to the deployment.
+4. Redeploy and open the generated URL. Checkout stores orders in the hosted PostgreSQL database.
+
+The original `.php` files are retained for XAMPP/PHP hosting and are not used by the Vercel frontend.
+
 ## 📜 License
 
 This project is created for academic purposes. You are free to use and modify it with attribution.

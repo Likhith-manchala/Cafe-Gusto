@@ -50,6 +50,27 @@
       margin-bottom: 16px;
     }
 
+    .payment-box {
+      margin-top: 28px;
+      padding-top: 20px;
+      border-top: 1px solid #444;
+    }
+
+    .payment-box select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .payment-note {
+      color: #c7c7c7;
+      font-size: 13px;
+      margin: 4px 0 0;
+    }
+
     .btn-group {
       margin-top: 20px;
       display: flex;
@@ -92,6 +113,19 @@
       <input type="number" id="table-number" placeholder="Enter your table number" />
     </div>
 
+    <div class="payment-box">
+      <label for="payment-method">Payment method:</label>
+      <select id="payment-method" onchange="togglePaymentFields()">
+        <option value="upi">UPI</option>
+        <option value="card">Credit / debit card</option>
+        <option value="cash">Pay at the table</option>
+      </select>
+      <div id="online-payment-fields">
+        <input type="text" id="payment-reference" placeholder="Enter UPI ID or card last 4 digits" maxlength="40" />
+      </div>
+      <p class="payment-note">Online payments are securely simulated for this demo checkout.</p>
+    </div>
+
     <div class="btn-group">
       <a href="interface.php">Back to Cuisines</a>
       <button onclick="clearCart()">Clear Cart</button>
@@ -130,9 +164,16 @@
       location.reload();
     }
 
+    function togglePaymentFields() {
+      const method = document.getElementById("payment-method").value;
+      document.getElementById("online-payment-fields").style.display = method === "cash" ? "none" : "block";
+    }
+
     async function placeOrder() {
       const name = document.getElementById("customer-name").value.trim();
       const table = document.getElementById("table-number").value.trim();
+      const paymentMethod = document.getElementById("payment-method").value;
+      const paymentReference = document.getElementById("payment-reference").value.trim();
 
       if (!name || !table) {
         alert("Please enter both your name and table number before placing the order.");
@@ -141,6 +182,11 @@
 
       if (total <= 0) {
         alert("Your cart is empty. Please add some items before placing an order.");
+        return;
+      }
+
+      if (paymentMethod !== "cash" && !paymentReference) {
+        alert("Please enter your payment reference before placing the order.");
         return;
       }
 
@@ -159,6 +205,9 @@
       const orderData = {
         customer_name: name,
         table_number: parseInt(table),
+        total_amount: Number(total.toFixed(2)),
+        payment_method: paymentMethod,
+        payment_reference: paymentReference,
         items: orderItems
       };
 
@@ -174,7 +223,8 @@
         const result = await response.json();
 
         if (result.success) {
-          alert(`Thank you, ${name}! Your order for Table ${table} has been placed successfully.`);
+          const paymentMessage = result.payment_status === "pending" ? "Payment is due at the table" : "Payment confirmed";
+          alert(`Thank you, ${name}! Your order for Table ${table} has been placed successfully.\n${paymentMessage}.\nTransaction: ${result.transaction_reference}`);
           localStorage.removeItem("cart");
           window.location.href = "interface.php";
         } else {

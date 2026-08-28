@@ -30,3 +30,15 @@ CREATE TABLE IF NOT EXISTS table_numbers (
     status VARCHAR(20) DEFAULT 'available',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS payments (
+    payment_id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    table_number INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(20) NOT NULL,
+    payment_reference VARCHAR(100),
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    transaction_reference VARCHAR(40) NOT NULL UNIQUE,
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

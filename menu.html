@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Menu | Cafe Gusto</title><link rel="stylesheet" href="app.css"></head>
+<body class="menu-page">
+  <header class="page-header"><div><p class="eyebrow">CAFE GUSTO <span>•</span> THE MENU</p><h1>Choose your craving.</h1></div><a class="nav-link" href="cart.html">View cart</a></header>
+  <nav class="filters" aria-label="Cuisine filters"><button class="filter active" data-cuisine="All">All</button><button class="filter" data-cuisine="Indian">Indian</button><button class="filter" data-cuisine="Italian">Italian</button><button class="filter" data-cuisine="Chinese">Chinese</button><button class="filter" data-cuisine="Korean">Korean</button><button class="filter" data-cuisine="Mexican">Mexican</button><button class="filter" data-cuisine="French">French</button></nav>
+  <main class="dish-grid"></main>
+  <script src="app.js"></script><script>renderMenu(); document.querySelectorAll('.filter').forEach(button => button.onclick = () => { document.querySelector('.filter.active').classList.remove('active'); button.classList.add('active'); renderMenu(button.dataset.cuisine); });</script>
+</body>
+</html>
