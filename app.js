@@ -38,17 +38,24 @@ function renderCart() {
   document.querySelector('#cart-total').textContent = `Grand total: ₹${total}`;
   window.cartTotal = total;
 }
+function getOrderEndpoint() {
+  return ['localhost', '127.0.0.1'].includes(location.hostname) ? 'process_order.php' : '/api/order';
+}
 async function placeOrder() {
   const name = document.querySelector('#customer-name').value.trim();
-  const table = document.querySelector('#table-number').value.trim();
   const method = document.querySelector('#payment-method').value;
   const reference = document.querySelector('#payment-reference').value.trim();
-  if (!name || !table || !window.cartTotal) return alert('Please enter your name, table number, and add items to your cart.');
+  if (!name || !window.cartTotal) return alert('Please enter your name and add items to your cart.');
   if (method !== 'cash' && !reference) return alert('Please enter your payment reference.');
   const items = Object.entries(getCart()).map(([dish_name, item]) => ({ dish_name, ...item }));
-  const response = await fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer_name: name, table_number: Number(table), total_amount: window.cartTotal, payment_method: method, payment_reference: reference, items }) });
-  const result = await response.json();
-  if (!response.ok || !result.success) return alert(result.message || 'Unable to place order.');
-  alert(`Order confirmed. Transaction: ${result.transaction_reference}`);
-  localStorage.removeItem('cart'); location.href = 'index.html';
+  try {
+    const response = await fetch(getOrderEndpoint(), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ customer_name: name, total_amount: window.cartTotal, payment_method: method, payment_reference: reference, items }) });
+    const result = await response.json();
+    if (!response.ok || !result.success) return alert(result.message || 'Unable to place order.');
+    const paymentMessage = result.payment_status === 'pending' ? 'Payment is due at the table' : 'Payment confirmed';
+    alert(`Order confirmed for Table ${result.table_number}. ${paymentMessage}. Transaction: ${result.transaction_reference}`);
+    localStorage.removeItem('cart'); location.href = 'index.html';
+  } catch (error) {
+    alert(`Unable to place order: ${error.message}`);
+  }
 }

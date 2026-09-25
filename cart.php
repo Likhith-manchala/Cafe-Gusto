@@ -110,7 +110,7 @@
       <input type="text" id="customer-name" placeholder="Enter your name" />
 
       <label for="table-number">Table Number:</label>
-      <input type="number" id="table-number" placeholder="Enter your table number" />
+      <input type="text" id="table-number" value="Assigned automatically at checkout" readonly />
     </div>
 
     <div class="payment-box">
@@ -171,12 +171,11 @@
 
     async function placeOrder() {
       const name = document.getElementById("customer-name").value.trim();
-      const table = document.getElementById("table-number").value.trim();
       const paymentMethod = document.getElementById("payment-method").value;
       const paymentReference = document.getElementById("payment-reference").value.trim();
 
-      if (!name || !table) {
-        alert("Please enter both your name and table number before placing the order.");
+      if (!name) {
+        alert("Please enter your name before placing the order.");
         return;
       }
 
@@ -204,7 +203,6 @@
 
       const orderData = {
         customer_name: name,
-        table_number: parseInt(table),
         total_amount: Number(total.toFixed(2)),
         payment_method: paymentMethod,
         payment_reference: paymentReference,
@@ -224,7 +222,7 @@
 
         if (result.success) {
           const paymentMessage = result.payment_status === "pending" ? "Payment is due at the table" : "Payment confirmed";
-          alert(`Thank you, ${name}! Your order for Table ${table} has been placed successfully.\n${paymentMessage}.\nTransaction: ${result.transaction_reference}`);
+          alert(`Thank you, ${name}! Your order for Table ${result.table_number} has been placed successfully.\n${paymentMessage}.\nTransaction: ${result.transaction_reference}`);
           localStorage.removeItem("cart");
           window.location.href = "interface.php";
         } else {

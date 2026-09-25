@@ -11,13 +11,12 @@ if (!$data) {
 }
 
 $customer_name = $data['customer_name'] ?? '';
-$table_number = $data['table_number'] ?? '';
 $items = $data['items'] ?? [];
 $payment_method = $data['payment_method'] ?? '';
 $payment_reference = trim($data['payment_reference'] ?? '');
 $total_amount = (float)($data['total_amount'] ?? 0);
 
-if (empty($customer_name) || empty($table_number) || empty($items) || !in_array($payment_method, ['upi', 'card', 'cash'], true)) {
+if (empty($customer_name) || empty($items) || !in_array($payment_method, ['upi', 'card', 'cash'], true)) {
     echo json_encode(['success' => false, 'message' => 'Missing required fields']);
     exit;
 }
@@ -65,6 +64,16 @@ try {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )";
     $conn->query($create_table_numbers_sql);
+    for ($available_table = 1; $available_table <= 20; $available_table++) {
+        $conn->query("INSERT IGNORE INTO table_numbers (table_number) VALUES ($available_table)");
+    }
+
+    $table_result = $conn->query("SELECT table_number FROM table_numbers WHERE status = 'available' ORDER BY table_number LIMIT 1 FOR UPDATE");
+    if (!$table_result || !$table_result->num_rows) {
+        throw new Exception('No tables are currently available. Please try again shortly.');
+    }
+    $table_row = $table_result->fetch_assoc();
+    $table_number = (int)$table_row['table_number'];
 
     $create_payments_sql = "CREATE TABLE IF NOT EXISTS payments (
         payment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -148,7 +157,7 @@ try {
     // Commit transaction
     $conn->commit();
 
-    echo json_encode(['success' => true, 'transaction_reference' => $transaction_reference, 'payment_status' => $payment_status]);
+    echo json_encode(['success' => true, 'table_number' => $table_number, 'transaction_reference' => $transaction_reference, 'payment_status' => $payment_status]);
 } catch (Exception $e) {
     $conn->rollback();
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
