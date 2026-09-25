@@ -1,0 +1,4 @@
+# Legacy PHP/XAMPP implementation; Vercel uses api/order.js.
+*.php
+create_database.sql
+README.md
